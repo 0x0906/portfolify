@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production builds
+dist/
+client/dist/
+server/dist/
+
+# Local environment secrets
+.env
+.env.local
+.env.*.local
+
+# Test coverage & logs
+coverage/
+uploads/
+*.log
+*.tsbuildinfo
+
+# Internal tooling
+.agents/
+.hallmark/
+skills-lock.json
+.DS_Store
