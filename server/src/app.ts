@@ -15,15 +15,27 @@ const app = express()
 
 app.set("trust proxy", 1)
 
+const rawClientUrl = process.env.CLIENT_URL?.replace(/\/$/, "")
+const customTrusted = (process.env.BETTER_AUTH_TRUSTED_ORIGINS || "")
+  .split(",")
+  .map((o) => o.trim().replace(/\/$/, ""))
+  .filter(Boolean)
+
 const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:5173",
+  ...(rawClientUrl ? [rawClientUrl] : []),
+  ...customTrusted,
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ]
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app") ||
+      origin.endsWith(".onrender.com")
+    ) {
       callback(null, true)
     } else {
       callback(new Error("Not allowed by CORS"))

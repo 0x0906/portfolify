@@ -35,7 +35,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: process.env.NODE_ENV === "production",
     async sendResetPassword({ user, token }: any) {
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173"
+      const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "")
       const resetLink = `${clientUrl}/reset-password?token=${token}`
       await sendPasswordResetEmail(user.email, resetLink)
     },
@@ -44,14 +44,45 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     async sendVerificationEmail({ user, token }: any) {
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173"
+      const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "")
       const verificationLink = `${clientUrl}/verify-email?token=${token}`
       await sendVerificationEmail(user.email, verificationLink)
     },
   },
-  trustedOrigins: [
-    process.env.CLIENT_URL || "http://localhost:5173",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-  ],
+  trustedOrigins: async (request) => {
+    const rawClientUrl = process.env.CLIENT_URL?.replace(/\/$/, "")
+    const customTrusted = (process.env.BETTER_AUTH_TRUSTED_ORIGINS || "")
+      .split(",")
+      .map((o) => o.trim().replace(/\/$/, ""))
+      .filter(Boolean)
+
+    const origins = [
+      ...(rawClientUrl ? [rawClientUrl] : []),
+      ...customTrusted,
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "https://*.vercel.app",
+      "*.vercel.app",
+      "https://*.onrender.com",
+      "*.onrender.com",
+    ]
+
+    if (!request) return origins
+    const reqOrigin = request.headers.get("origin") || request.headers.get("referer")
+    if (reqOrigin) {
+      try {
+        const parsed = new URL(reqOrigin).origin
+        if (
+          parsed.endsWith(".vercel.app") ||
+          parsed.endsWith(".onrender.com") ||
+          parsed.includes("localhost") ||
+          parsed.includes("127.0.0.1") ||
+          (rawClientUrl && parsed === rawClientUrl)
+        ) {
+          origins.push(parsed)
+        }
+      } catch {}
+    }
+    return Array.from(new Set(origins))
+  },
 })
