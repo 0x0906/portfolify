@@ -12,6 +12,16 @@ export const api = axios.create({
   },
 })
 
+api.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem("bearer_token")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  } catch {}
+  return config
+})
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {

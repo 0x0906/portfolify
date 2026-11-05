@@ -1,12 +1,21 @@
 import { betterAuth } from "better-auth"
 import { APIError } from "better-auth/api"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { bearer } from "better-auth/plugins"
 import { db } from "../db/index.js"
 import * as schema from "../db/schema.js"
 import { sendVerificationEmail, sendPasswordResetEmail } from "../services/email.js"
 import { validateEmail } from "../utils/validation.js"
 
 export const auth = betterAuth({
+  plugins: [bearer()],
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+      httpOnly: true,
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {

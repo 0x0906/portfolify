@@ -41,7 +41,9 @@ app.use(cors({
       callback(new Error("Not allowed by CORS"))
     }
   },
-  credentials: true
+  credentials: true,
+  exposedHeaders: ["set-auth-token"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With"],
 }))
 
 app.all("/api/auth/*", toNodeHandler(auth))

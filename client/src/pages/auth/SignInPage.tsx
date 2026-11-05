@@ -53,6 +53,11 @@ export function SignInPage() {
           setErrorMessage(response.error.message || "Invalid email or password.")
         }
       } else {
+        if ((response.data as any)?.session?.token) {
+          try {
+            localStorage.setItem("bearer_token", (response.data as any).session.token)
+          } catch {}
+        }
         await refreshSession()
         const returnTo = (location.state as any)?.returnTo
         const savedTemplate = localStorage.getItem("selected_template_id")

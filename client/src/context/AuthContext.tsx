@@ -35,6 +35,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const sessionResult = await authClient.getSession()
       if (sessionResult && sessionResult.data && sessionResult.data.user) {
+        if ((sessionResult.data as any)?.session?.token) {
+          try {
+            localStorage.setItem("bearer_token", (sessionResult.data as any).session.token)
+          } catch {}
+        }
         setUser(sessionResult.data.user as User)
       } else {
         setUser(null)
@@ -51,6 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const handleSignOut = async () => {
+    try {
+      localStorage.removeItem("bearer_token")
+    } catch {}
     try {
       await authClient.signOut()
     } finally {

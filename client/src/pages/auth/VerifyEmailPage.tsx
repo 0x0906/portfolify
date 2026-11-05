@@ -63,6 +63,11 @@ export function VerifyEmailPage() {
           setStatus("error")
           setErrorMessage(response.error.message || "This verification link is invalid or has expired.")
         } else {
+          if ((response?.data as any)?.session?.token) {
+            try {
+              localStorage.setItem("bearer_token", (response.data as any).session.token)
+            } catch {}
+          }
           setStatus("success")
           await refreshSession()
         }
